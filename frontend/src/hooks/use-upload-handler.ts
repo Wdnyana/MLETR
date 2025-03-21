@@ -11,8 +11,8 @@ export function useUploadHandler(
 
   const fileAccept: Record<string, string[]> =
     mode === 'Verifiable'
-      ? { 'application/octet-stream': ['.tt'] }
-      : { 'text/csv': ['.csv'], 'application/json': ['.json'] }
+      ? { 'text/csv': ['.csv'], 'application/json': ['.json'] }
+      : { 'application/octet-stream': ['.tt'] }
 
   async function uploadFileProgress(file: File) {
     try {
@@ -83,7 +83,7 @@ export function useUploadHandler(
 
   const rejectedFile = useCallback(() => {
     setError(
-      `Invalid file format. Please upload ${mode === 'Verifiable' ? 'a .tt file' : '.csv or .json files'}.`,
+      `Invalid file format. Please upload ${mode === 'Verifiable' ? '.csv or .json files' : 'a .tt file'}.`,
     )
   }, [mode])
 
