@@ -12,6 +12,9 @@ const userRoutes = require("./routes/userRoutes");
 const documentRoutes = require("./routes/documentRoutes");
 const transferRoutes = require("./routes/transferRoutes");
 const twoFactorRoutes = require("./routes/twoFactorRoutes");
+const uploadRoutes = require('./routes/uploadRoutes');
+const downloadRoutes = require('./routes/downloadRoutes');
+const magicLinkRoutes = require('./routes/magicLinkRoutes');
 
 class App {
   constructor() {
@@ -95,6 +98,10 @@ class App {
     this.app.use(`${apiPrefix}/documents`, documentRoutes);
     this.app.use(`${apiPrefix}/transfers`, transferRoutes);
     this.app.use(`${apiPrefix}/two-factor`, twoFactorRoutes);
+    this.app.use(`${apiPrefix}/uploads`, uploadRoutes);
+    this.app.use(`${apiPrefix}/downloads`, downloadRoutes);
+    this.app.use(`${apiPrefix}/magic`, magicLinkRoutes);
+
     // Add this in your app.js before the 404 handler
     this.app.get("/test", (req, res) => {
       res.json({ message: "Test route works!" });
