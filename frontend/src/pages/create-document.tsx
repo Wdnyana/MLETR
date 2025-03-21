@@ -1,6 +1,7 @@
-import { UploadFile } from '@/components/dashboard/upload-file'
+import { useState } from 'react'
 import DashboardLayout from '@/components/layout/dashboard/dashboard-layout'
 import { LoginEmailOTP } from '@/types/general-type'
+import { UploadFile } from '@/components/dashboard/upload-file'
 
 const text = 'Drag & drop or click to upload your file configuration here'
 const formatFiles = '.csv, .json'
@@ -16,8 +17,7 @@ export default function CreateDocument({ token, setToken }: LoginEmailOTP) {
         </p>
 
         <div className="mt-24 flex flex-col-reverse items-center justify-between gap-10 lg:flex-row">
-          <UploadFile mode="create" desc={text} formatFile={formatFiles} />
-          <div className="h-full w-auto border">dasd</div>
+          <UploadFile mode="Create" desc={text} formatFile={formatFiles} />
         </div>
       </div>
     </DashboardLayout>

@@ -1,3 +1,4 @@
+// form-login.tsx
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -70,18 +71,12 @@ export function FormLogin({ token, setToken }: LoginEmailOTP) {
                 const infoUser = await magic?.user.getInfo()
                 console.log('User Info is:', infoUser)
 
-                // Store token
-                const isToken = result ?? ''
-                setToken(isToken)
-
-                console.log(isToken)
-
                 // Make an API call to verify with our backend
                 const response = await fetch(`${import.meta.env.VITE_REACT_API_URL}/api/v1/auth/verify`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${isToken}`
+                    'Authorization': `Bearer ${result}`
                   },
                   body: JSON.stringify({ 
                     email: values.email 
@@ -95,8 +90,12 @@ export function FormLogin({ token, setToken }: LoginEmailOTP) {
                 const data = await response.json();
                 console.log('Backend verification successful:', data);
 
-                // Save user info to local storage
-                saveUserInfo(isToken, 'EMAIL', infoUser?.publicAddress ?? '')
+                // Use the JWT from the backend for API authorization
+                const jwtToken = data.token;
+                setToken(jwtToken);
+                
+                // Save user info to local storage with JWT
+                saveUserInfo(jwtToken, 'EMAIL', infoUser?.publicAddress ?? '', data.user);
               } catch (backendError) {
                 console.error('Backend verification error:', backendError);
                 setErrorMessage('Error verifying with server. Please try again.');
