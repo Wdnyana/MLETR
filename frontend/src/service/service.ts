@@ -6,7 +6,6 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_REACT_API_URL || '';
 
-// Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -14,7 +13,6 @@ const axiosInstance = axios.create({
   },
 });
 
-// Add request interceptor to include auth token
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -29,7 +27,6 @@ axiosInstance.interceptors.request.use(
 );
 
 const documentService = {
-  // Create document with document data
   createDocument: async (req: HeaderDocumentReview): Promise<DocumentCreateResponse> => {
     try {
       console.log('Creating document with data:', req);
@@ -43,14 +40,11 @@ const documentService = {
     }
   },
 
-  // Upload file for document
   uploadFile: async (file: File): Promise<any> => {
     try {
-      // Create form data
       const formData = new FormData();
       formData.append('file', file);
 
-      // Update headers for file upload
       const config = {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -68,7 +62,6 @@ const documentService = {
     }
   },
 
-  // Check document job status
   checkJobStatus: async (jobId: string, queueName: string): Promise<any> => {
     try {
       const res = await axiosInstance.get(`/api/v1/documents/job-status/${queueName}/${jobId}`);
@@ -80,7 +73,6 @@ const documentService = {
     }
   },
 
-  // Get document details
   getDocumentDetails: async (documentId: string): Promise<any> => {
     try {
       const res = await axiosInstance.get(`/api/v1/documents/${documentId}`);
@@ -92,7 +84,6 @@ const documentService = {
     }
   },
 
-  // Get user documents
   getUserDocuments: async (): Promise<any> => {
     try {
       const res = await axiosInstance.get('/api/v1/documents/user');

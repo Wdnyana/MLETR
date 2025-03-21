@@ -47,7 +47,6 @@ export function UploadFile({
 
   const navigate = useNavigate()
 
-  // Reset to initial step
   function handleToDashboard() {
     setFileName('')
     setStep(1)
@@ -59,18 +58,15 @@ export function UploadFile({
     setCreateError(null)
   }
 
-  // Poll job status when jobId is available
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | null = null;
     
     if (jobId && (jobStatus === 'waiting' || jobStatus === 'active' || jobStatus === 'delayed')) {
-      // Poll every 3 seconds
       intervalId = setInterval(async () => {
         try {
           const status = await documentService.checkJobStatus(jobId, 'creation');
           setJobStatus(status.state);
           
-          // If complete, get document details
           if (status.state === 'completed') {
             if (status.result && status.result.document) {
               setDocumentId(status.result.document._id || status.result.document.id);
@@ -80,7 +76,6 @@ export function UploadFile({
             }
           }
           
-          // If failed, show error
           if (status.state === 'failed') {
             setCreateError(status.error || 'Document creation failed');
             if (intervalId !== null) {
@@ -104,15 +99,12 @@ export function UploadFile({
     };
   }, [jobId, jobStatus]);
 
-  // Handle next step button click
   async function nextStep() {
-    // Verify mode - check exchange selection
     if (mode === 'Verifiable' && step === 1 && !selectedExchange) {
       setAlertView?.(true)
       return
     }
     
-    // Validation checks for document type and name
     if ((step === 2 && !selected) || (step === 3 && fileName.trim() === '')) {
       setAlert(true)
       return
@@ -122,12 +114,10 @@ export function UploadFile({
     setAlertView?.(false)
     setCreateError(null)
 
-    // Create document when on the name input step
     if (mode === 'Create' && step === 3) {
       try {
         setIsSubmitting(true)
 
-        // Create document with file data
         const docType = selected === 'transferable' ? 'Transferable' : 'Verifiable';
         
         const res = await documentService.createDocument({
@@ -136,18 +126,15 @@ export function UploadFile({
           fileName: fileName,
         });
 
-        // Save the job ID for status checking
         if (res.job && res.job.id) {
           setJobId(res.job.id);
           setJobStatus('waiting');
         }
 
-        // If document is created immediately without a job, store the document ID
         if (res.document && (res.document._id || res.document.id)) {
           setDocumentId(res.document._id || res.document.id);
         }
 
-        // Move to the download step
         setStep((prev) => prev + 1);
       } catch (error) {
         console.error('Document creation error:', error);
@@ -156,19 +143,16 @@ export function UploadFile({
         setIsSubmitting(false);
       }
     } else {
-      // Otherwise just move to the next step
       setStep((prev) => prev + 1);
     }
   }
 
-  // Handle verification mode
   useEffect(() => {
     if (mode === 'Verifiable' && uploadedFile && progress === 100) {
       setVerifyMode(true)
     }
   }, [uploadedFile, progress, mode])
 
-  // Navigate to document viewer for verification
   useEffect(() => {
     if (verifyMode) {
       navigate('/document-viewer')

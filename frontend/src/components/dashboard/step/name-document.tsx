@@ -13,12 +13,9 @@ export function NameDocument({
   alert,
   setAlert,
 }: DocumentNames) {
-  // Generate a default file name based on the uploaded file when component mounts
   useEffect(() => {
     if (uploadedFile && !fileName) {
-      // Get file name without extension
       const baseName = uploadedFile.name.replace(/\.[^/.]+$/, "");
-      // Sanitize the name to remove special characters
       const sanitizedName = baseName.replace(/[^a-zA-Z0-9_\- ]/g, "");
       setFileName(sanitizedName);
     }
@@ -27,15 +24,12 @@ export function NameDocument({
   function handleDocumentName(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     
-    // Validate and sanitize input
     const sanitizedValue = value.replace(/[^a-zA-Z0-9_\- ]/g, "");
     setFileName(sanitizedValue);
     
-    // Set alert if the value is empty
     setAlert(sanitizedValue.trim() === '');
   }
 
-  // Function to get file extension
   const getFileExtension = (filename: string) => {
     return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
   }

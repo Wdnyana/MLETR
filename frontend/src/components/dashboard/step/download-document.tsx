@@ -27,10 +27,8 @@ export function DownloadDocument({
       setIsDownloading(true)
       setDownloadError(null)
       
-      // If we have a document ID, download the specific document
       if (documentId) {
         try {
-          // Fetch the document file from the backend
           const response = await fetch(`${import.meta.env.VITE_REACT_API_URL}/api/v1/documents/${documentId}/download`, {
             method: 'GET',
             headers: {
@@ -42,10 +40,8 @@ export function DownloadDocument({
             throw new Error('Failed to download document');
           }
 
-          // Create a blob from the response
           const blob = await response.blob();
           
-          // Create a download link
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.style.display = 'none';
@@ -54,7 +50,6 @@ export function DownloadDocument({
           document.body.appendChild(a);
           a.click();
           
-          // Clean up
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
           
@@ -67,7 +62,6 @@ export function DownloadDocument({
           setDownloadError('Failed to download document. Please try again.');
         }
       } else {
-        // Simulate download if no document ID (for compatibility with existing code)
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setAlert(true);
         setTimeout(() => {
@@ -87,10 +81,8 @@ export function DownloadDocument({
       setIsDownloading(true)
       setDownloadError(null)
       
-      // Fetch all documents for the user and download as a ZIP
       if (documentId) {
         try {
-          // Fetch the document and related files as ZIP
           const response = await fetch(`${import.meta.env.VITE_REACT_API_URL}/api/v1/documents/download-all`, {
             method: 'GET',
             headers: {
@@ -102,10 +94,8 @@ export function DownloadDocument({
             throw new Error('Failed to download all documents');
           }
 
-          // Create a blob from the response
           const blob = await response.blob();
           
-          // Create a download link
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.style.display = 'none';
@@ -114,7 +104,6 @@ export function DownloadDocument({
           document.body.appendChild(a);
           a.click();
           
-          // Clean up
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
           
@@ -127,7 +116,6 @@ export function DownloadDocument({
           setDownloadError('Failed to download all documents. Please try again.');
         }
       } else {
-        // Simulate download if no document ID (for compatibility with existing code)
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setAlert(true);
         setTimeout(() => {

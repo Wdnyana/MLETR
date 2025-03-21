@@ -12,7 +12,6 @@ export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Check if user is logged in and token is valid
   const checkAuthStatus = async () => {
     try {
       setLoading(true)
@@ -72,7 +71,6 @@ export default function App() {
     }
   }, [])
 
-  // Handle protected route redirection
   useEffect(() => {
     const protectedRoutes = [
       '/dashboard',
@@ -90,13 +88,12 @@ export default function App() {
     }
   }, [token, navigate, location, loading])
 
-  // Refresh auth status periodically
   useEffect(() => {
     const interval = setInterval(() => {
       if (token) {
         checkAuthStatus()
       }
-    }, 5 * 60 * 1000) // Check every 5 minutes
+    }, 5 * 60 * 1000) 
     
     return () => clearInterval(interval)
   }, [token])

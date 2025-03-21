@@ -24,7 +24,6 @@ export function DragAndDrop({
     maxSize: 10485760, // 10MB max size
   })
 
-  // Function to get file extension
   const getFileExtension = (filename: string) => {
     return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
   }
