@@ -1,7 +1,8 @@
 import { useDropzone } from 'react-dropzone'
-import { AlertCircle, UploadCloud, X } from 'lucide-react'
+import { AlertCircle, UploadCloud, X, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DragAndDropFiles } from '@/types/general-type'
+import { formatFileSize } from '@/lib/utils'
 
 export function DragAndDrop({
   desc,
@@ -20,7 +21,13 @@ export function DragAndDrop({
     onDrop: onDragAndDrop,
     onDropRejected: rejectedFiles,
     multiple: false,
+    maxSize: 10485760, // 10MB max size
   })
+
+  // Function to get file extension
+  const getFileExtension = (filename: string) => {
+    return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+  }
 
   return (
     <div className="w-full">
@@ -45,6 +52,9 @@ export function DragAndDrop({
             {formatFile}
           </span>
         </p>
+        {!uploadedFile && !uploading && (
+          <p className="text-gray-500 mt-3 text-sm">Maximum file size: 10MB</p>
+        )}
       </div>
 
       {error && (
@@ -56,8 +66,9 @@ export function DragAndDrop({
 
       {uploading && (
         <div className="mt-7 w-full">
-          <div className="mb-2 text-center text-sm font-medium">
-            Uploading... {progress}%
+          <div className="mb-2 flex justify-between text-sm font-medium">
+            <span>Uploading {uploadedFile?.name}</span>
+            <span>{progress}%</span>
           </div>
           <div className="h-2 w-full rounded bg-gray-200">
             <div
@@ -69,16 +80,28 @@ export function DragAndDrop({
       )}
 
       {uploadedFile && !uploading && (
-        <div className="mt-7 flex w-full items-center justify-between rounded-md border py-1 ps-4 pe-1 shadow-sm">
-          <span className="truncate text-gray-400">{uploadedFile.name}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer"
-            onClick={removeFile}
-          >
-            <X className="" size={18} />
-          </Button>
+        <div className="mt-7 w-full">
+          <div className="flex w-full items-center justify-between rounded-md border py-3 px-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-100">
+                <FileText className="h-5 w-5 text-gray-500" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium">{uploadedFile.name}</span>
+                <span className="text-xs text-gray-500">
+                  {formatFileSize(uploadedFile.size)} • {getFileExtension(uploadedFile.name).toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer text-gray-500 hover:text-red-500"
+              onClick={removeFile}
+            >
+              <X className="" size={18} />
+            </Button>
+          </div>
         </div>
       )}
     </div>

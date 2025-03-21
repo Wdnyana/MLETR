@@ -67,8 +67,8 @@ export type DownloadDocuments = {
   onReset: () => void
   alert: boolean
   setAlert: (value: boolean) => void
+  documentId?: string | null
 }
-
 export type SelectExchanges = {
   onSelect: (value: string) => void
   error?: boolean
@@ -110,6 +110,7 @@ export type LogoutComponentsProps = {
   text: string
   isDisconnect?: boolean
   onClick: () => void
+  isLoading?: boolean
 }
 
 export type ProtectedRouteDashboard = {
