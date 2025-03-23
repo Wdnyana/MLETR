@@ -1,63 +1,55 @@
-require("dotenv").config();
-const http = require("http");
-const app = require("./app");
+require('dotenv').config();
+const http = require('http');
+const app = require('./app');
+const connectDatabase = require('./config/database');
 
-// Graceful shutdown handler
 const gracefulShutdown = (server) => {
-  const signals = ["SIGINT", "SIGTERM"];
+    const signals = ['SIGINT', 'SIGTERM'];
+    
+    signals.forEach(signal => {
+        process.on(signal, () => {
+            console.log(`Received ${signal}. Shutting down gracefully...`);
+            
+            server.close(() => {
+                console.log('HTTP server closed.');
+                
+                process.exit(0);
+            });
 
-  signals.forEach((signal) => {
-    process.on(signal, () => {
-      console.log(`Received ${signal}. Shutting down gracefully...`);
-
-      server.close(() => {
-        console.log("HTTP server closed.");
-
-        // Close database connections or other resources if needed
-        process.exit(0);
-      });
-
-      // Force close server after 10 seconds
-      setTimeout(() => {
-        console.error(
-          "Could not close connections in time, forcefully shutting down"
-        );
-        process.exit(1);
-      }, 10000);
+            setTimeout(() => {
+                console.error('Could not close connections in time, forcefully shutting down');
+                process.exit(1);
+            }, 10000);
+        });
     });
-  });
 };
 
-// Create HTTP server
-const server = http.createServer(app.getApp());
+async function startServer() {
+    try {
+        console.log('Connecting to database...');
+        await connectDatabase();
+        console.log('Database connection established.');
 
-// Server configuration
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || "0.0.0.0";
+        // Get app instance
+        const expressApp = app.getApp();
 
-// Start server
-server.listen(PORT, HOST, () => {
-  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-  console.log(`📡 Environment: ${process.env.NODE_ENV || "development"}`);
-});
+        // Create HTTP server
+        const server = http.createServer(expressApp);
 
-// Setup graceful shutdown
-gracefulShutdown(server);
+        const PORT = process.env.PORT || 3000;
+        const HOST = process.env.HOST || '0.0.0.0';
 
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+        server.listen(PORT, HOST, () => {
+            console.log(`🚀 Server running on ${HOST}:${PORT}`);
+            console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+        });
 
-  // Optional: Crash the process
-  process.exit(1);
-});
+        gracefulShutdown(server);
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
 
-// Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
-
-  // Optional: Crash the process
-  process.exit(1);
-});
-
-module.exports = server;
+// Run the server
+startServer();

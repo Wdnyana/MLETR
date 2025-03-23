@@ -80,6 +80,36 @@ const DocumentSchema = new mongoose.Schema(
     revokedAt: {
       type: Date,
     },
+    originalName: {
+      type: String,
+      required: false
+    },
+    fileName: {
+      type: String,
+      required: false
+    },
+    filePath: {
+      type: String,
+      required: false
+    },
+    fileSize: {
+      type: Number,
+      required: false
+    },
+    fileType: {
+      type: String,
+      required: false
+    },
+    downloadHistory: [{
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      downloadedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }]
   },
   {
     timestamps: true,

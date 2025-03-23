@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { LoginEmailOTP, LogoutComponentsProps } from '@/types/general-type'
 import { magic } from '@/lib/magic-provider'
 import { Button } from './button'
@@ -9,6 +9,7 @@ function LogoutComponents({
   text,
   isDisconnect,
   onClick,
+  isLoading,
 }: LogoutComponentsProps) {
   return (
     <>
@@ -16,8 +17,9 @@ function LogoutComponents({
         onClick={onClick}
         variant="destructive"
         className={`rounded-xl px-5 py-[22px] text-base capitalize ${isDisconnect ? 'disconnect-button' : 'action-button'}`}
+        disabled={isLoading}
       >
-        {text}
+        {isLoading ? 'Disconnecting...' : text}
       </Button>
     </>
   )
@@ -25,14 +27,31 @@ function LogoutComponents({
 
 export function LogoutButton({ token, setToken }: LoginEmailOTP) {
   const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(false)
 
   const disconnect = useCallback(async () => {
-    if (magic) {
-      await logout({ setToken, magic, navigate })
+    try {
+      setIsLoading(true)
+      
+      if (magic) {
+        await logout({ setToken, magic, navigate })
+      }
+      
+      setTimeout(() => {
+        setIsLoading(false)
+      }, 500)
+    } catch (error) {
+      console.error('Error during logout:', error)
+      setIsLoading(false)
     }
   }, [setToken, navigate])
 
   return (
-    <LogoutComponents text="Disconnect" isDisconnect onClick={disconnect} />
+    <LogoutComponents 
+      text="Disconnect" 
+      isDisconnect 
+      onClick={disconnect} 
+      isLoading={isLoading} 
+    />
   )
 }

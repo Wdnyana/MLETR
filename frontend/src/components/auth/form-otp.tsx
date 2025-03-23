@@ -55,6 +55,7 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
         setVerified(true)
         setMessage('OTP verification successful!')
 
+        // Trigger storage event to notify other components
         window.dispatchEvent(new Event('storageUpdate'))
         window.dispatchEvent(new Event('storage'))
 
@@ -124,6 +125,11 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
   return (
     <>
       <form onSubmit={handleOTPCode}>
+        <div className="mb-4 text-center">
+          <h3 className="text-lg font-semibold mb-2">Enter the verification code</h3>
+          <p className="text-gray-600">Please enter the 6-digit code sent to your email</p>
+        </div>
+        
         {message && (
           <motion.div
             initial={{ opacity: 1 }}
@@ -172,6 +178,16 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
           ) : (
             'Submit'
           )}
+        </Button>
+        
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 w-full cursor-pointer px-6 py-3"
+          onClick={cancelOTP}
+          disabled={loading || verified || redirecting}
+        >
+          Cancel
         </Button>
       </form>
     </>

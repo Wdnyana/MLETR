@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -25,7 +26,6 @@ import {
   RPCError,
   RPCErrorCode,
 } from 'magic-sdk'
-import { useState } from 'react'
 import Loading from '../ui/loading'
 import { LoginEmailOTP } from '@/types/general-type'
 import { saveUserInfo } from '../utils/common'
@@ -35,6 +35,7 @@ export function FormLogin({ token, setToken }: LoginEmailOTP) {
   const [loading, setLoading] = useState(false)
   const [loginOtp, setLoginOtp] = useState<PromiEvent<string | null>>()
   const [showOTP, setShowOTP] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const form = useForm<z.infer<typeof formEmailValidation>>({
     resolver: zodResolver(formEmailValidation),
@@ -45,6 +46,7 @@ export function FormLogin({ token, setToken }: LoginEmailOTP) {
 
   async function onSubmit(values: z.infer<typeof formEmailValidation>) {
     setLoading(true)
+    setErrorMessage(null)
 
     try {
       const loginOtp = magic?.auth.loginWithEmailOTP({
@@ -58,66 +60,100 @@ export function FormLogin({ token, setToken }: LoginEmailOTP) {
         loginOtp
           .on(LoginWithEmailOTPEventOnReceived.EmailOTPSent as any, () => {
             setShowOTP(true)
+            setLoading(false)
           })
           .on('done', async (result) => {
             if (result) {
-              const infoUser = await magic?.user.getInfo()
-              console.log('User Info ini adalah:', infoUser)
+              try {
+                const infoUser = await magic?.user.getInfo()
+                console.log('User Info is:', infoUser)
 
-              const isToken = result ?? ''
+                const response = await fetch(`${import.meta.env.VITE_REACT_API_URL}/api/v1/auth/verify`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${result}`
+                  },
+                  body: JSON.stringify({ 
+                    email: values.email 
+                  })
+                });
 
-              setToken(isToken)
-              saveUserInfo(isToken, 'EMAIL', infoUser?.publicAddress ?? '')
+                if (!response.ok) {
+                  throw new Error('Failed to verify with backend');
+                }
+
+                const data = await response.json();
+                console.log('Backend verification successful:', data);
+
+                const jwtToken = data.token;
+                setToken(jwtToken);
+                
+                saveUserInfo(jwtToken, 'EMAIL', infoUser?.publicAddress ?? '', data.user);
+              } catch (backendError) {
+                console.error('Backend verification error:', backendError);
+                setErrorMessage('Error verifying with server. Please try again.');
+                setShowOTP(false);
+                setLoading(false);
+              }
             }
           })
           .catch((err) => {
-            console.log('Error during login: ', err)
-            console.error(err.message)
+            console.error('Error during login: ', err);
+            setErrorMessage(err.message || 'Authentication failed. Please try again.');
+            setLoading(false);
+            setShowOTP(false);
           })
           .on('settled', () => {
-            setLoginOtp(undefined)
-            setShowOTP(false)
-          })
+            setLoginOtp(undefined);
+          });
       }
-
-      const metadata = await magic?.user.getInfo()
-
-      if (!token || !metadata?.publicAddress)
-        throw new Error('Login with magic failed!!')
-
-      setToken(token)
-      saveUserInfo(token, 'EMAIL', metadata?.publicAddress)
-      form.reset()
     } catch (err) {
-      console.log('Error when login in: ', err)
+      console.error('Error when logging in: ', err);
 
       if (err instanceof RPCError) {
         switch (err.code) {
           case RPCErrorCode.MagicLinkFailedVerification:
+            setErrorMessage('Magic link verification failed. Please try again.');
+            break;
           case RPCErrorCode.MagicLinkExpired:
+            setErrorMessage('Magic link expired. Please request a new one.');
+            break;
           case RPCErrorCode.MagicLinkRateLimited:
+            setErrorMessage('Too many attempts. Please try again later.');
+            break;
           case RPCErrorCode.UserAlreadyLoggedIn:
-            console.log('Specific Magic error occurred:', err.code)
-            break
+            setErrorMessage('User already logged in.');
+            break;
+          default:
+            setErrorMessage('Authentication failed. Please try again.');
         }
+      } else {
+        setErrorMessage('Authentication failed. Please try again.');
       }
-    } finally {
-      setLoading(false)
+
+      setLoading(false);
     }
   }
 
   function cancelLoginOTP() {
     try {
-      loginOtp?.emit(LoginWithEmailOTPEventEmit.Cancel as any)
-
-      console.log('login is canceled')
+      loginOtp?.emit(LoginWithEmailOTPEventEmit.Cancel as any);
+      setShowOTP(false);
+      console.log('Login is canceled');
     } catch (err) {
-      console.log('error in: ', err)
+      console.error('Error in cancellation: ', err);
     }
   }
 
   return (
     <>
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {errorMessage}
+        </div>
+      )}
+      
       {showOTP ? (
         <div className="w-full">
           <FormOTP loginOtp={loginOtp} cancelOTP={cancelLoginOTP} />
@@ -143,7 +179,7 @@ export function FormLogin({ token, setToken }: LoginEmailOTP) {
               )}
             />
             <Button
-              className="cursor-pointer px-6 py-5 md:px-10 md:py-6 md:text-base"
+              className="cursor-pointer px-6 py-5 md:px-10 md:py-6 md:text-base w-full"
               type="submit"
               disabled={loading}
             >
