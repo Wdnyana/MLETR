@@ -141,25 +141,27 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
           </motion.div>
         )}
 
-        <InputOTP
-          className="mt-3"
-          maxLength={6}
-          value={otpCode}
-          onChange={handleChange}
-          disabled={loading || verified || redirecting}
-        >
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-            <InputOTPSlot index={1} />
-            <InputOTPSlot index={2} />
-          </InputOTPGroup>
-          <InputOTPSeparator />
-          <InputOTPGroup>
-            <InputOTPSlot index={3} />
-            <InputOTPSlot index={4} />
-            <InputOTPSlot index={5} />
-          </InputOTPGroup>
-        </InputOTP>
+        <div className="w-full">
+          <InputOTP
+            className="mt-3"
+            maxLength={6}
+            value={otpCode}
+            onChange={handleChange}
+            disabled={loading || verified || redirecting}
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
 
         <Button
           type="submit"

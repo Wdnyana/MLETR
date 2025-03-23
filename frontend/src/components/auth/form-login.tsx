@@ -155,7 +155,9 @@ export function FormLogin({ token, setToken }: LoginEmailOTP) {
       )}
       
       {showOTP ? (
-        <FormOTP loginOtp={loginOtp} cancelOTP={cancelLoginOTP} />
+        <div className="w-full">
+          <FormOTP loginOtp={loginOtp} cancelOTP={cancelLoginOTP} />
+        </div>
       ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

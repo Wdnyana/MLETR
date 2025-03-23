@@ -30,7 +30,10 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="input-otp-group"
-      className={cn('flex items-center gap-2', className)}
+      className={cn(
+        'flex w-full items-center justify-between gap-2 lg:gap-0',
+        className,
+      )}
       {...props}
     />
   )
@@ -69,7 +72,7 @@ function InputOTPSlot({
 function InputOTPSeparator({ ...props }: React.ComponentProps<'div'>) {
   return (
     <div data-slot="input-otp-separator" role="separator" {...props}>
-      <div className="bg-primary h-3 w-3 rounded-full" />
+      <div className="bg-primary mx-2 h-3 w-3 rounded-full md:mx-4 xl:mx-5" />
     </div>
   )
 }

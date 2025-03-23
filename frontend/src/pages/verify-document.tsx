@@ -4,6 +4,7 @@ import { UploadFile } from '@/components/dashboard/upload-file'
 import DashboardLayout from '@/components/layout/dashboard/dashboard-layout'
 import { SelectForm } from '@/components/ui/select-form'
 import { LoginEmailOTP } from '@/types/general-type'
+import { ImageDrageAndDrop } from '@/assets'
 const text = 'Drag & drop or click your TradeTrust file to view its contents'
 const formatFiles = '.tt'
 
@@ -37,7 +38,15 @@ export default function VerifyDocument({ token, setToken }: LoginEmailOTP) {
             alertView={alertView}
             setAlertView={setAlertView}
           />
-          <div className="h-full w-auto border">dasd</div>
+
+          <div className="h-full w-auto basis-[50%]">
+            <img
+              src={ImageDrageAndDrop}
+              className="h-full w-fit object-cover object-center"
+              alt=""
+              loading="lazy"
+            />
+          </div>
         </div>
       </div>
     </DashboardLayout>

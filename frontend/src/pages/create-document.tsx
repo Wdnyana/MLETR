@@ -1,4 +1,9 @@
+
+import { ImageDrageAndDrop } from '@/assets'
+import { UploadFile } from '@/components/dashboard/upload-file'
+
 import { useState } from 'react'
+
 import DashboardLayout from '@/components/layout/dashboard/dashboard-layout'
 import { LoginEmailOTP } from '@/types/general-type'
 import { UploadFile } from '@/components/dashboard/upload-file'
@@ -17,7 +22,17 @@ export default function CreateDocument({ token, setToken }: LoginEmailOTP) {
         </p>
 
         <div className="mt-24 flex flex-col-reverse items-center justify-between gap-10 lg:flex-row">
+
           <UploadFile mode="Create" desc={text} formatFile={formatFiles} />
+
+          <div className="h-full w-auto basis-[50%]">
+            <img
+              src={ImageDrageAndDrop}
+              className="h-full w-fit object-cover object-center"
+              alt=""
+              loading="lazy"
+            />
+          </div>
         </div>
       </div>
     </DashboardLayout>
