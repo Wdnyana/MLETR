@@ -45,7 +45,7 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
           setMessage(
             `Incorrect OTP, please enter OTP again. ${retries - 1} ${retries === 1 ? 'retry' : 'retries'} left.`,
           )
-        }, 1700)
+        }, 1500)
       }
     }
 
@@ -103,7 +103,7 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
     setDisable(true)
     setTimeout(() => {
       setMessage('Verifying OTP code...')
-    }, 1700)
+    }, 1500)
 
     try {
       loginOtp?.emit(LoginWithEmailOTPEventEmit.VerifyEmailOtp as any, otpCode)
@@ -126,10 +126,14 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
     <>
       <form onSubmit={handleOTPCode}>
         <div className="mb-4 text-center">
-          <h3 className="text-lg font-semibold mb-2">Enter the verification code</h3>
-          <p className="text-gray-600">Please enter the 6-digit code sent to your email</p>
+          <h3 className="mb-2 text-lg font-semibold">
+            Enter the verification code
+          </h3>
+          <p className="text-gray-600">
+            Please enter the 6-digit code sent to your email
+          </p>
         </div>
-        
+
         {message && (
           <motion.div
             initial={{ opacity: 1 }}
@@ -179,7 +183,7 @@ export function FormOTP({ loginOtp, cancelOTP }: OTPTypes) {
             'Submit'
           )}
         </Button>
-        
+
         <Button
           type="button"
           variant="outline"
