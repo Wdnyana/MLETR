@@ -93,8 +93,7 @@ export default {
       },
 
       fontFamily: {
-        'passion-one': ['Passion One', 'serif'],
-        lato: ['Lato', 'serif'],
+        'poppins-base': ['Poppins', 'sans-serif'],
       },
 
       // Responsive spacing with fluid approach

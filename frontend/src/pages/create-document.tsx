@@ -1,3 +1,4 @@
+import { ImageDrageAndDrop } from '@/assets'
 import { UploadFile } from '@/components/dashboard/upload-file'
 import DashboardLayout from '@/components/layout/dashboard/dashboard-layout'
 import { LoginEmailOTP } from '@/types/general-type'
@@ -17,7 +18,15 @@ export default function CreateDocument({ token, setToken }: LoginEmailOTP) {
 
         <div className="mt-24 flex flex-col-reverse items-center justify-between gap-10 lg:flex-row">
           <UploadFile mode="create" desc={text} formatFile={formatFiles} />
-          <div className="h-full w-auto border">dasd</div>
+
+          <div className="h-full w-auto basis-[50%]">
+            <img
+              src={ImageDrageAndDrop}
+              className="h-full w-fit object-cover object-center"
+              alt=""
+              loading="lazy"
+            />
+          </div>
         </div>
       </div>
     </DashboardLayout>
