@@ -13,6 +13,7 @@ const axiosInstance = axios.create({
   },
 });
 
+
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -57,7 +58,7 @@ const documentService = {
       return res.data;
     } catch (err) {
       console.error('Error uploading file:', err);
-      const errorMessage = err.response?.data?.error || 'File upload failed';
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'File upload failed';
       throw new Error(errorMessage);
     }
   },
@@ -68,7 +69,7 @@ const documentService = {
       return res.data;
     } catch (err) {
       console.error('Error checking job status:', err);
-      const errorMessage = err.response?.data?.error || 'Failed to check job status';
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to check job status';
       throw new Error(errorMessage);
     }
   },
@@ -79,7 +80,7 @@ const documentService = {
       return res.data;
     } catch (err) {
       console.error('Error getting document details:', err);
-      const errorMessage = err.response?.data?.error || 'Failed to get document details';
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to get document details';
       throw new Error(errorMessage);
     }
   },
@@ -90,10 +91,73 @@ const documentService = {
       return res.data;
     } catch (err) {
       console.error('Error getting user documents:', err);
-      const errorMessage = err.response?.data?.error || 'Failed to get user documents';
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to get user documents';
       throw new Error(errorMessage);
     }
   },
+
+  downloadDocument: async (documentId: string): Promise<Blob> => {
+    try {
+      const res = await axiosInstance.get(`/api/v1/documents/${documentId}/download`, {
+        responseType: 'blob'
+      });
+      return res.data;
+    } catch (err) {
+      console.error('Error downloading document:', err);
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to download document';
+      throw new Error(errorMessage);
+    }
+  },
+
+  downloadAllDocuments: async (): Promise<Blob> => {
+    try {
+      const res = await axiosInstance.get('/api/v1/documents/download-all', {
+        responseType: 'blob'
+      });
+      return res.data;
+    } catch (err) {
+      console.error('Error downloading all documents:', err);
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to download all documents';
+      throw new Error(errorMessage);
+    }
+  },
+
+  verifyDocument: async (documentId: string, documentHash?: string): Promise<any> => {
+    try {
+      const res = await axiosInstance.post(`/api/v1/documents/${documentId}/verify`, {
+        documentHash
+      });
+      return res.data;
+    } catch (err) {
+      console.error('Error verifying document:', err);
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to verify document';
+      throw new Error(errorMessage);
+    }
+  },
+
+  transferDocument: async (documentId: string, newHolder: string): Promise<any> => {
+    try {
+      const res = await axiosInstance.post(`/api/v1/documents/${documentId}/transfer`, {
+        newHolder
+      });
+      return res.data;
+    } catch (err) {
+      console.error('Error transferring document:', err);
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to transfer document';
+      throw new Error(errorMessage);
+    }
+  },
+
+  getDocumentHistory: async (documentId: string): Promise<any> => {
+    try {
+      const res = await axiosInstance.get(`/api/v1/documents/${documentId}/history`);
+      return res.data;
+    } catch (err) {
+      console.error('Error getting document history:', err);
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to get document history';
+      throw new Error(errorMessage);
+    }
+  }
 };
 
 export default documentService;

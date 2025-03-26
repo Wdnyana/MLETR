@@ -21,7 +21,7 @@ export function DragAndDrop({
     onDrop: onDragAndDrop,
     onDropRejected: rejectedFiles,
     multiple: false,
-    maxSize: 10485760, // 10MB max size
+    maxSize: 10485760, 
   })
 
   const getFileExtension = (filename: string) => {

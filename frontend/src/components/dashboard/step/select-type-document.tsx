@@ -1,6 +1,7 @@
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { SelectTypes } from '@/types/general-type'
+import { documentTypes } from '@/components/utils/document-helpers'
 
 export function SelectTypeDocument({
   setSelectTypeDoc,
@@ -12,6 +13,8 @@ export function SelectTypeDocument({
     setSelectTypeDoc(selected === id ? '' : id)
     setAlert(false)
   }
+
+  const documentTypesArray = Object.values(documentTypes);
 
   return (
     <div className="w-full">
@@ -32,38 +35,44 @@ export function SelectTypeDocument({
         </Alert>
       )}
 
-      <div className="mt-5 flex flex-col gap-5">
-        <div
-          className={`cursor-pointer rounded-lg border px-7 py-5 ${selected === 'transferable' ? 'border-primary' : 'border-gray-300'}`}
-          onClick={() => handleSelectTypeDocument('transferable')}
-        >
-          <h4
-            className={`mb-1 font-normal ${selected === 'transferable' ? 'text-primary' : 'text-gray-700'}`}
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {documentTypesArray.map((data) => (
+          <div
+            key={data.id}
+            className={`cursor-pointer rounded-lg border px-5 py-4 transition-all hover:shadow-md ${
+              selected === data.id 
+                ? 'border-primary bg-primary/5' 
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onClick={() => handleSelectTypeDocument(data.id)}
           >
-            Transferable Document
-          </h4>
-          <p
-            className={`md:text-base ${selected === 'transferable' ? 'text-primary' : 'text-gray-500'}`}
-          >
-            Document that can be transferred between users and traded on a marketplace.
-          </p>
-        </div>
-
-        <div
-          className={`cursor-pointer rounded-lg border px-7 py-5 ${selected === 'verifiable' ? 'border-primary' : 'border-gray-300'}`}
-          onClick={() => handleSelectTypeDocument('verifiable')}
-        >
-          <h4
-            className={`mb-1 font-normal ${selected === 'verifiable' ? 'text-primary' : 'text-gray-700'}`}
-          >
-            Verifiable Document
-          </h4>
-          <p
-            className={`md:text-base ${selected === 'verifiable' ? 'text-primary' : 'text-gray-500'}`}
-          >
-            Document that can be verified but not transferred; maintains permanent ownership.
-          </p>
-        </div>
+            <div className="flex items-center justify-between">
+              <h4
+                className={`mb-1 font-medium ${
+                  selected === data.id ? 'text-primary' : 'text-foreground'
+                }`}
+              >
+                {data.name}
+              </h4>
+              <span 
+                className={`text-xs px-2 py-1 rounded-full ${
+                  data.category === 'Transferable' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-green-100 text-green-700'
+                }`}
+              >
+                {data.category}
+              </span>
+            </div>
+            <p
+              className={`text-sm md:text-base ${
+                selected === data.id ? 'text-primary/80' : 'text-muted-foreground'
+              }`}
+            >
+              {data.description}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   )
