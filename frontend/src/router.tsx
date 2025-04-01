@@ -31,6 +31,11 @@ export default function RouterPages({ token, setToken }: LoginEmailOTP) {
           element: <WrapperVerifyDocument token={token} setToken={setToken} />,
           protected: true,
         },
+        {
+          path: '/document/:id',
+          element: <WrapperDocumentView token={token} setToken={setToken} />,
+          protected: true,
+        },
       ]
     : []
 

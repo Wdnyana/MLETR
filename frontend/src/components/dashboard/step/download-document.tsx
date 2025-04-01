@@ -6,6 +6,7 @@ import { BadgeCheck } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import documentService from '@/service/service'
 import Loading from '@/components/ui/loading'
+import { useEffect } from 'react'
 
 export function DownloadDocument({
   fileName,
@@ -22,25 +23,67 @@ export function DownloadDocument({
     return navigate('/dashboard')
   }
 
+  useEffect(() => {
+    const testDownload = () => {
+      console.log('Testing file download...');
+      try {
+        // Create a sample text file
+        const blob = new Blob(['Test file content'], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'test.txt';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        console.log('Test download initiated');
+      } catch (error) {
+        console.error('Test download failed:', error);
+      }
+    };
+    
+    const testButton = document.createElement('button');
+    testButton.textContent = 'Test Download';
+    testButton.style.padding = '10px';
+    testButton.style.margin = '10px';
+    testButton.style.backgroundColor = '#4CAF50';
+    testButton.style.color = 'white';
+    testButton.style.border = 'none';
+    testButton.style.borderRadius = '5px';
+    testButton.onclick = testDownload;
+    
+    document.body.appendChild(testButton);
+    
+    return () => {
+      if (document.body.contains(testButton)) {
+        document.body.removeChild(testButton);
+      }
+    };
+  }, []);
+
   async function handleDownloadDocument() {
     try {
-      setIsDownloading(true)
-      setDownloadError(null)
+      setIsDownloading(true);
+      setDownloadError(null);
       
       if (documentId) {
         try {
           const blob = await documentService.downloadDocument(documentId);
           
           const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', fileName || 'document.tt');
           
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
+          document.body.appendChild(link);
+          link.click();
+          
+          setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+          }, 100);
           
           setAlert(true);
           setTimeout(() => {

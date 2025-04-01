@@ -1,31 +1,18 @@
-import { HeaderViewDocument } from '@/components/dashboard/header-view-document'
-import { InvoiceDocument } from '@/components/dashboard/invoice-document'
-import { NFTDocument } from '@/components/dashboard/nft-document'
-import DashboardLayout from '@/components/layout/dashboard/dashboard-layout'
-import { LoginEmailOTP } from '@/types/general-type'
+// frontend/src/pages/view-document.tsx - Update this file
 
-export default function ViewDocument({ type }: LoginEmailOTP) {
+import DashboardLayout from '@/components/layout/dashboard/dashboard-layout';
+import { LoginEmailOTP } from '@/types/general-type';
+import { useParams } from 'react-router-dom';
+import TradeTrustDocumentViewer from '@/components/dashboard/TradeTrustDocumentViewer';
+
+export default function ViewDocument({ token, setToken }: LoginEmailOTP) {
+  const { id } = useParams();
+  
   return (
     <DashboardLayout>
       <div className="mt-5 h-full w-full">
-        {type?.type === 'Transferable' ? (
-          <>
-            <HeaderViewDocument type="Transferable" />
-
-            <div className="mt-20 w-full">
-              <NFTDocument />
-            </div>
-          </>
-        ) : (
-          <>
-            <HeaderViewDocument type="Verifiable" />
-
-            <div className="mt-20 w-full">
-              <InvoiceDocument />
-            </div>
-          </>
-        )}
+        <TradeTrustDocumentViewer documentId={id} />
       </div>
     </DashboardLayout>
-  )
+  );
 }

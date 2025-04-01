@@ -12,37 +12,37 @@ export interface DocumentType {
 export const documentTypes: Record<string, DocumentType> = {
   'bill-of-lading': {
     id: 'bill-of-lading',
-    name: 'TradeTrust Bill of Lading v2 (Carrier)',
+    name: 'Bill of Lading v2 (Carrier)',
     description: 'Bill of Lading document for carrier',
     category: 'Transferable'
   },
   'chafta-certificate': {
     id: 'chafta-certificate',
-    name: 'TradeTrust ChAFTA Certificate of Origin v2',
+    name: 'ChAFTA Certificate of Origin v2',
     description: 'Certificate of Origin document for trade',
     category: 'Verifiable'
   },
   'invoice': {
     id: 'invoice',
-    name: 'TradeTrust Invoice v2 (DNS-DID)',
+    name: 'Invoice v2 (DNS-DID)',
     description: 'Invoice document for trade',
     category: 'Verifiable'
   },
   'air-waybill': {
     id: 'air-waybill',
-    name: 'TradeTrust Air Waybill v2',
+    name: 'Air Waybill v2',
     description: 'Air Waybill document for air cargo',
     category: 'Transferable'
   },
   'sea-waybill': {
     id: 'sea-waybill',
-    name: 'TradeTrust Sea Waybill v2',
+    name: 'Sea Waybill v2',
     description: 'Sea Waybill document for maritime transport',
     category: 'Transferable'
   },
   'ships-delivery-order': {
     id: 'ships-delivery-order',
-    name: 'TradeTrust Ship\'s Delivery Order v2',
+    name: 'Ship\'s Delivery Order v2',
     description: 'Ship\'s Delivery Order document',
     category: 'Verifiable'
   },

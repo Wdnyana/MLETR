@@ -3,6 +3,7 @@ import {
   HeaderDocumentReview,
 } from '@/types/general-type';
 import axios from 'axios';
+import { formatToOpenAttestation, parseFromOpenAttestation } from './document-formater';
 
 const API_URL = import.meta.env.VITE_REACT_API_URL || '';
 
@@ -98,9 +99,48 @@ const documentService = {
 
   downloadDocument: async (documentId: string): Promise<Blob> => {
     try {
+      console.log('Downloading document:', documentId);
+      
       const res = await axiosInstance.get(`/api/v1/documents/${documentId}/download`, {
         responseType: 'blob'
       });
+      
+      console.log('Download response headers:', res.headers);
+      console.log('Download response type:', res.data.type);
+      
+      const contentType = res.headers['content-type'] || '';
+      
+      if (contentType.includes('application/json') || contentType.includes('text/plain')) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              let documentData;
+              try {
+                documentData = JSON.parse(reader.result as string);
+              } catch (e) {
+                documentData = { data: reader.result };
+              }
+              
+              const formattedDocument = formatToOpenAttestation(documentData);
+              const jsonStr = JSON.stringify(formattedDocument, null, 2);
+              const blob = new Blob([jsonStr], { type: 'application/octet-stream' });
+              console.log('Created formatted document blob:', blob.size);
+              resolve(blob);
+            } catch (error) {
+              console.error('Error formatting document:', error);
+              reject(error);
+            }
+          };
+          reader.onerror = (error) => {
+            console.error('Error reading blob:', error);
+            reject(error);
+          };
+          reader.readAsText(res.data);
+        });
+      }
+      
+      console.log('Returning raw blob:', res.data.size);
       return res.data;
     } catch (err) {
       console.error('Error downloading document:', err);
@@ -122,19 +162,60 @@ const documentService = {
     }
   },
 
-  verifyDocument: async (documentId: string, documentHash?: string): Promise<any> => {
+  verifyTradeTrustDocument: async (documentData: any): Promise<any> => {
     try {
-      const res = await axiosInstance.post(`/api/v1/documents/${documentId}/verify`, {
+      console.log('Document being verified:', documentData);
+
+      const standardDocument = parseFromOpenAttestation(documentData);
+      console.log('Parsed standard document:', standardDocument);
+      
+      const documentHash = standardDocument.documentHash;
+      if (!documentHash) {
+        console.error('Missing document hash in the document');
+        return {
+          verified: false,
+          error: 'Missing document hash',
+          document: standardDocument
+        };
+      }
+      
+      console.log('Using document hash for verification:', documentHash);
+
+      const res = await axiosInstance.post('/api/v1/documents/verify-tradetrust', {
         documentHash
       });
-      return res.data;
+
+      console.log("Verification response:", res.data);
+      
+      return {
+        verified: res.data.verified || false,
+        document: standardDocument,
+        verification: res.data
+      };
     } catch (err) {
       console.error('Error verifying document:', err);
-      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to verify document';
-      throw new Error(errorMessage);
+    
+      let errorMessage = 'Failed to verify document';
+      let errorDetails = {};
+      
+      if (axios.isAxiosError(err)) {
+        errorMessage = err.response?.data?.error || 'Network error during verification';
+        errorDetails = {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message
+        };
+        console.error('Axios error details:', errorDetails);
+      }
+      
+      return {
+        verified: false,
+        error: errorMessage,
+        errorDetails,
+        document: documentData
+      };
     }
   },
-
   transferDocument: async (documentId: string, newHolder: string): Promise<any> => {
     try {
       const res = await axiosInstance.post(`/api/v1/documents/${documentId}/transfer`, {
