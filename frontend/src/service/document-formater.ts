@@ -226,7 +226,7 @@ export function validateDocumentHash(document: any): { valid: boolean; issues: s
     
     if (!documentHash) {
       issues.push('Missing document hash');
-    } else if (!/^[0-9a-f]{64}$/i.test(document.documentHash.replace(/^0x/, ''))) {
+    } else if (!/^[0-9a-f]{64}$/i.test(documentHash.replace(/^0x/, ''))) {
       issues.push('Invalid document hash format - should be a 64-character hex string');
     }
     
