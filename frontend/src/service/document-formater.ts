@@ -169,7 +169,7 @@ export function parseFromOpenAttestation(document: any): any {
 
         return result
     }
-    const data = desaltData(document.data);
+  const data = desaltData(document.data);
   
   const documentType = data.$template?.name?.toLowerCase().replace(/_/g, '-') || 'bill-of-lading';
   
@@ -216,22 +216,30 @@ export function parseFromOpenAttestation(document: any): any {
 
 export function validateDocumentHash(document: any): { valid: boolean; issues: string[] } {
     const issues: string[] = [];
+
+    const isOpenAttestation = document.version === 'https://schema.openattestation.com/2.0/schema.json';
+
+    const documentHash = isOpenAttestation
+        ? document.signature?.targetHash
+        : document.documentHash;
+
     
-    if (!document.documentHash) {
+    if (!documentHash) {
       issues.push('Missing document hash');
     } else if (!/^[0-9a-f]{64}$/i.test(document.documentHash.replace(/^0x/, ''))) {
       issues.push('Invalid document hash format - should be a 64-character hex string');
     }
     
-    if (document.version !== 'https://schema.openattestation.com/2.0/schema.json') {
+    if (!isOpenAttestation) {
       issues.push('Not using OpenAttestation 2.0 schema');
     }
     
-    if (!document.signature || !document.signature.targetHash) {
+    if (isOpenAttestation && (!document.signature || !document.signature.targetHash)) {
       issues.push('Missing signature or targetHash');
-    } else if (document.signature.targetHash !== document.documentHash && 
-               '0x' + document.signature.targetHash !== document.documentHash && 
-               document.signature.targetHash !== '0x' + document.documentHash) {
+    } 
+    if (!isOpenAttestation && document.signature?.targetHash && documentHash !== document.signature.targetHash && 
+        '0x' + document.signature.targetHash !== documentHash && 
+        document.signature.targetHash !== '0x' + documentHash) {
       issues.push('Document hash does not match signature targetHash');
     }
     

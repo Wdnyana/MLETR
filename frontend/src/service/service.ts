@@ -169,7 +169,7 @@ const documentService = {
       const standardDocument = parseFromOpenAttestation(documentData);
       console.log('Parsed standard document:', standardDocument);
       
-      const documentHash = standardDocument.documentHash;
+      const documentHash = documentData.signature?.targetHash || standardDocument.documentHash;
       if (!documentHash) {
         console.error('Missing document hash in the document');
         return {
