@@ -49,23 +49,15 @@ const TradeTrustDocumentHandler: React.FC = () => {
       
       const isTradeTrust = parsedDocument.version === 'https://schema.openattestation.com/2.0/schema.json';
       
-      const document = isTradeTrust 
-        ? parsedDocument 
-        : formatToOpenAttestation(parsedDocument);
-      
-      if (!document) {
-        throw new Error('Not a valid document.');
+      if (!isTradeTrust) {
+        console.log('Not a valid OpenAttestation document');
+        throw new Error('Not a valid OpenAttestation document. Document must follow the OpenAttestation schema.');
       }
       
-      const validation = validateDocumentHash(document);
-      if (!validation.valid) {
-        console.error('Document validation issues:', validation.issues);
-        throw new Error(`Invalid document format: ${validation.issues.join(', ')}`);
-      }
+      setDocumentData(parsedDocument);
       
-      setDocumentData(document);
-      
-      const result = await documentService.verifyTradeTrustDocument(document);
+      const result = await documentService.verifyTradeTrustDocument(parsedDocument);
+      console.log('Verification result:', result);
       setVerificationResult(result);
       
       if (result.error) {

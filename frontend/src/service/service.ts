@@ -4,6 +4,8 @@ import {
 } from '@/types/general-type';
 import axios from 'axios';
 import { formatToOpenAttestation, parseFromOpenAttestation } from './document-formater';
+import { verifyTradeTrustDocument, prepareDocumentForBlockchain } from './document-formater';
+
 
 const API_URL = import.meta.env.VITE_REACT_API_URL || '';
 
@@ -165,36 +167,36 @@ const documentService = {
   verifyTradeTrustDocument: async (documentData: any): Promise<any> => {
     try {
       console.log('Document being verified:', documentData);
-
-      const standardDocument = parseFromOpenAttestation(documentData);
-      console.log('Parsed standard document:', standardDocument);
       
-      const documentHash = documentData.signature?.targetHash || standardDocument.documentHash;
-      if (!documentHash) {
-        console.error('Missing document hash in the document');
-        return {
-          verified: false,
-          error: 'Missing document hash',
-          document: standardDocument
-        };
+      const clientVerification = await verifyTradeTrustDocument(documentData);
+      
+      console.log('Client-side verification result:', clientVerification);
+      if (!clientVerification.verified) {
+        console.log('Client-side verification:', clientVerification);
+        console.error('Client-side verification failed:', clientVerification);
+        return clientVerification;
       }
+
+      console.log('Client-side verification passed:', clientVerification);
+      const { documentHash } = prepareDocumentForBlockchain(documentData);
       
       console.log('Using document hash for verification:', documentHash);
-
+  
       const res = await axiosInstance.post('/api/v1/documents/verify-tradetrust', {
         documentHash
       });
-
-      console.log("Verification response:", res.data);
-      
+  
       return {
-        verified: res.data.verified || false,
-        document: standardDocument,
-        verification: res.data
+        verified: res.data.verified && clientVerification.verified,
+        document: parseFromOpenAttestation(documentData),
+        verification: {
+          client: clientVerification.verification,
+          blockchain: res.data
+        }
       };
     } catch (err) {
       console.error('Error verifying document:', err);
-    
+      
       let errorMessage = 'Failed to verify document';
       let errorDetails = {};
       
@@ -205,7 +207,6 @@ const documentService = {
           data: err.response?.data,
           message: err.message
         };
-        console.error('Axios error details:', errorDetails);
       }
       
       return {

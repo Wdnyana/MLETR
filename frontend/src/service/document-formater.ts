@@ -1,4 +1,6 @@
 import{v4 as uuidv4} from 'uuid';
+import { verify, isValid } from "@govtechsg/oa-verify";
+import { wrapDocument, utils } from "@govtechsg/open-attestation";
 
 
 export function formatToOpenAttestation(document: any): any {
@@ -264,3 +266,66 @@ export function validateDocumentHash(document: any): { valid: boolean; issues: s
       issues
     };
   }
+
+export async function verifyTradeTrustDocument(document: any) {
+  console.log('Verifying TradeTrust document...');
+  console.log('Document being verified:', document);
+  console.log('Document hash:', document.documentHash);
+  try {
+    let wrappedDocument = document;
+    console.log('Document version:', document.version);
+    if (!document.version || document.version !== "https://schema.openattestation.com/2.0/schema.json") {
+      wrappedDocument = wrapDocument(document);
+    }
+    console.log('Wrapped document:', wrappedDocument);
+    
+    const verificationResults = await verify(wrappedDocument);
+    console.log('Verification results:', verificationResults);
+    
+    const isDocumentValid = isValid(verificationResults);
+    console.log('Is document valid:', isDocumentValid);
+    
+    const documentIntegrity = verificationResults.find(r => r.type === "DOCUMENT_INTEGRITY");
+    const documentStatus = verificationResults.find(r => r.type === "DOCUMENT_STATUS");
+    console.log('Document integrity:', documentIntegrity);
+    console.log('Document status:', documentStatus);
+    
+    return {
+      verified: isDocumentValid,
+      verification: {
+        documentIntegrity: documentIntegrity?.status === "VALID",
+        documentStatus: documentStatus?.status === "VALID",
+        details: verificationResults
+      }
+    };
+  } catch (error) {
+    console.error('Error verifying document with TradeTrust:', error);
+    return {
+      verified: false,
+      error: error instanceof Error ? error.message : 'Unknown verification error',
+      errorDetails: error
+    };
+  }
+}
+
+export function prepareDocumentForBlockchain(document: any) {
+  let documentHash;
+  
+  if (document.signature && document.signature.targetHash) {
+    documentHash = document.signature.targetHash;
+  } else if (document.documentHash) {
+    documentHash = document.documentHash;
+  } else {
+    const documentData = utils.getDocumentData(document);
+    const hash = require('crypto')
+      .createHash('sha256')
+      .update(JSON.stringify(documentData))
+      .digest('hex');
+    documentHash = hash;
+  }
+  
+  return {
+    documentHash,
+    document
+  };
+}
