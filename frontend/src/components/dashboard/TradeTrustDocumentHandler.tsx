@@ -123,8 +123,11 @@ const TradeTrustDocumentHandler: React.FC = () => {
               <div className="mt-2 text-xs bg-red-50 p-2 rounded">
                 <p>Verification details:</p>
                 <ul className="list-disc pl-4 mt-1">
-                  <li>In database: {verificationResult.verification?.inDatabase ? 'Yes' : 'No'}</li>
-                  <li>On blockchain: {verificationResult.verification?.onBlockchain ? 'Yes' : 'No'}</li>
+                <li>Document integrity: {verificationResult.verification?.client?.documentIntegrity ? 'Valid' : 'Invalid'}</li>
+                <li>Document status: {verificationResult.verification?.client?.documentStatus ? 'Valid' : 'Invalid'}</li>
+                <li>Issuer identity: {verificationResult.verification?.client?.issuerIdentity ? 'Valid' : 'Invalid'}</li>
+                <li>In database: {verificationResult.verification?.blockchain?.inDatabase ? 'Yes' : 'No'}</li>
+                <li>On blockchain: {verificationResult.verification?.blockchain?.onBlockchain ? 'Yes' : 'No'}</li>
                   {verificationResult.errorDetails && (
                     <li>Error: {JSON.stringify(verificationResult.errorDetails)}</li>
                   )}

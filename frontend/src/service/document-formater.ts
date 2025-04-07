@@ -1,5 +1,5 @@
 import{v4 as uuidv4} from 'uuid';
-import { verify, isValid } from "@govtechsg/oa-verify";
+import { verify, isValid } from "@tradetrust-tt/tt-verify";
 import { wrapDocument, utils } from "@govtechsg/open-attestation";
 
 
@@ -50,7 +50,7 @@ export function formatToOpenAttestation(document: any): any {
             tokenRegistry: `${uuidv4()}:string:${metadata.owner || '0x0000000000000000000000000000000000000000'}`,
             identityProof: {
               type: `${uuidv4()}:string:DNS-TXT`,
-              location: `${uuidv4()}:string:your-domain.com`
+              location: `${uuidv4()}:string:sandbox.tradetrust.io`
             },
             revocation: {
               type: `${uuidv4()}:string:NONE`
@@ -270,31 +270,36 @@ export function validateDocumentHash(document: any): { valid: boolean; issues: s
 export async function verifyTradeTrustDocument(document: any) {
   console.log('Verifying TradeTrust document...');
   console.log('Document being verified:', document);
-  console.log('Document hash:', document.documentHash);
   try {
+
     let wrappedDocument = document;
+
     console.log('Document version:', document.version);
+    console.log('Document identity proof location:', document.data?.issuers?.[0]?.identityProof?.location);
     if (!document.version || document.version !== "https://schema.openattestation.com/2.0/schema.json") {
-      wrappedDocument = wrapDocument(document);
+      throw new Error("Document is not in OpenAttestation format");
     }
-    console.log('Wrapped document:', wrappedDocument);
     
     const verificationResults = await verify(wrappedDocument);
     console.log('Verification results:', verificationResults);
     
-    const isDocumentValid = isValid(verificationResults);
+    const isDocumentValid = verificationResults.every(r => r.status === "VALID");
     console.log('Is document valid:', isDocumentValid);
     
     const documentIntegrity = verificationResults.find(r => r.type === "DOCUMENT_INTEGRITY");
     const documentStatus = verificationResults.find(r => r.type === "DOCUMENT_STATUS");
+    const issuerIdentity = verificationResults.find(r => r.type === "ISSUER_IDENTITY");
+
     console.log('Document integrity:', documentIntegrity);
     console.log('Document status:', documentStatus);
+    console.log('Issuer identity:', issuerIdentity);
     
     return {
       verified: isDocumentValid,
       verification: {
         documentIntegrity: documentIntegrity?.status === "VALID",
         documentStatus: documentStatus?.status === "VALID",
+        issuerIdentity: issuerIdentity?.status === "VALID",
         details: verificationResults
       }
     };

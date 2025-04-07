@@ -178,9 +178,21 @@ const documentService = {
       }
 
       console.log('Client-side verification passed:', clientVerification);
-      const { documentHash } = prepareDocumentForBlockchain(documentData);
+      const documentHash  = documentData.signature?.targetHash;
       
+      if (!documentHash) {
+        console.error('Document hash not found in the document data');
+        return {
+          verified: false,
+          error: 'Document hash not found',
+          verification: {
+            client: clientVerification.verification
+          }
+        };
+      }
+
       console.log('Using document hash for verification:', documentHash);
+
   
       const res = await axiosInstance.post('/api/v1/documents/verify-tradetrust', {
         documentHash
