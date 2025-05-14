@@ -2,11 +2,33 @@ import{v4 as uuidv4} from 'uuid';
 import { verify, isValid } from "@tradetrust-tt/tt-verify";
 import { wrapDocument, utils } from "@govtechsg/open-attestation";
 
-
+export function detectDocumentFormat(document: any): string {
+  if (document.version && document.version === "https://schema.openattestation.com/2.0/schema.json") {
+    return "OpenAttestation";
+  }
+  
+  if (document.version && document.version === "https://schema.openattestation.com/3.0/schema.json") {
+    return "OpenAttestation3";
+  }
+  
+  if (document.signature && (document.signature.type === "SHA3MerkleProof" || document.signature.targetHash)) {
+    return "OpenAttestation"; // Likely OA format without version
+  }
+  
+  if (document.documentType === 'bill-of-lading' || document.documentType === 'Transferable') {
+    return "Legacy";
+  }
+  
+  return "Unknown";
+}
 export function formatToOpenAttestation(document: any): any {
-    if (document.version && document.version === "https://schema.openattestation.com/2.0/schema.json") {
-      return document;
+    const format = detectDocumentFormat(document)
+    if (format === "OpenAttestation" || format === "OpenAttestation3") {
+      return document; 
     }
+    // if (document.version && document.version === "https://schema.openattestation.com/2.0/schema.json") {
+    //   return document;
+    // }
   
     const metadata = document.metadata || document;
     const documentHash = document.documentHash || '';
@@ -50,7 +72,7 @@ export function formatToOpenAttestation(document: any): any {
             tokenRegistry: `${uuidv4()}:string:${metadata.owner || '0x0000000000000000000000000000000000000000'}`,
             identityProof: {
               type: `${uuidv4()}:string:DNS-TXT`,
-              location: `${uuidv4()}:string:sandbox.tradetrust.io`
+              location: `${uuidv4()}:string:xdctraderpc.xinfin.network`
             },
             revocation: {
               type: `${uuidv4()}:string:NONE`
@@ -125,6 +147,30 @@ export function parseFromOpenAttestation(document: any): any {
       return document;
     }
 
+    function parseSaltedValue(value: string): any{
+      if(typeof value !== 'string' || !value.includes(':')) return value;
+
+      console.log("Vals: ", value)  
+
+      const parts = value.split(':');
+      console.log("parts: ", parts)
+      if(parts.length < 3) return value;
+
+      const valueType = parts[1];
+      console.log("valType: ", valueType)
+      const actualValue = parts.slice(2).join(':');
+      console.log("actVal: ", actualValue)
+
+      switch(valueType) { 
+        case 'number':
+          return Number(actualValue);
+        case 'boolean':
+          return actualValue.toLowerCase() === 'true';
+        default:
+          return actualValue;
+      }
+    }
+
     const desaltData = (obj: any): any => {
 
         if(typeof obj !== 'object' || obj === null) return obj;
@@ -135,38 +181,13 @@ export function parseFromOpenAttestation(document: any): any {
 
         const result: any = {}
 
-        for(const [key,value] of Object.entries(obj)){
-            if(typeof value === 'object' && value !== null){
-                result[key] = desaltData(value)
-            }
-            else if(typeof value === 'string' && value.includes(':')){
-                console.log("Val1: ", value)
-                const parts = value.split(':')
-                console.log("parts: ", parts)
-                if(parts.length >= 3){
-                    const valueType = parts[1]
-                    const actualValue = parts.slice(2).join(':')
-                    console.log("valType: ", valueType)
-                    console.log("actVal: ", actualValue)
-
-                    if(actualValue === 'number'){
-                        result[key] = Number(actualValue)
-                    }
-                    else if(actualValue === 'boolean'){
-                        result[key] = actualValue.toLowerCase() === 'true';
-                    }
-                    else{
-                        result[key] = actualValue
-                    }
-
-                }
-                else{
-                    result[key] = value
-                }
-            }
-            else{
-                result[key] = value
-            }
+        
+        for (const[key,value] of Object.entries(obj)){
+          if(typeof value === 'object' && obj !== null){
+            result[key] = desaltData(value)
+          }else{
+            result[key] = parseSaltedValue(value as string)
+          }
         }
 
         return result

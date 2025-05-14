@@ -107,8 +107,8 @@ const documentService = {
         responseType: 'blob'
       });
       
-      console.log('Download response headers:', res.headers);
-      console.log('Download response type:', res.data.type);
+      // console.log('Download response headers:', res.headers);
+      // console.log('Download response type:', res.data.type);
       
       const contentType = res.headers['content-type'] || '';
       
@@ -126,7 +126,8 @@ const documentService = {
               
               const formattedDocument = formatToOpenAttestation(documentData);
               const jsonStr = JSON.stringify(formattedDocument, null, 2);
-              const blob = new Blob([jsonStr], { type: 'application/octet-stream' });
+              const blob = new Blob([jsonStr], 
+                { type: 'application/octet-stream' });
               console.log('Created formatted document blob:', blob.size);
               resolve(blob);
             } catch (error) {
@@ -164,54 +165,73 @@ const documentService = {
     }
   },
 
-  verifyTradeTrustDocument: async (documentData: any): Promise<any> => {
-    try {
-      console.log('Document being verified:', documentData);
-      
-      const clientVerification = await verifyTradeTrustDocument(documentData);
-      
-      console.log('Client-side verification result:', clientVerification);
-      if (!clientVerification.verified) {
-        console.log('Client-side verification:', clientVerification);
-        console.error('Client-side verification failed:', clientVerification);
-        return clientVerification;
-      }
+  // frontend/src/service/service.ts
+// Update the verifyTradeTrustDocument method
 
-      console.log('Client-side verification passed:', clientVerification);
-      const documentHash  = documentData.signature?.targetHash;
-      
-      if (!documentHash) {
-        console.error('Document hash not found in the document data');
-        return {
-          verified: false,
-          error: 'Document hash not found',
-          verification: {
-            client: clientVerification.verification
-          }
-        };
-      }
-
-      console.log('Using document hash for verification:', documentHash);
-
-  
-      const res = await axiosInstance.post('/api/v1/documents/verify-tradetrust', {
-        documentHash
-      });
-  
+verifyTradeTrustDocument: async (documentData: any): Promise<any> => {
+  try {
+    console.log('Document being verified:', documentData);
+    
+    // Step 1: Client-side verification
+    const clientVerification = await verifyTradeTrustDocument(documentData);
+    
+    console.log('Client-side verification result:', clientVerification);
+    
+    // Extract document hash
+    const documentHash = documentData.signature?.targetHash ||
+                         documentData.documentHash;
+    
+    if (!documentHash) {
+      console.error('Document hash not found in the document data');
       return {
-        verified: res.data.verified && clientVerification.verified,
-        document: parseFromOpenAttestation(documentData),
+        verified: false,
+        error: 'Document hash not found',
         verification: {
-          client: clientVerification.verification,
-          blockchain: res.data
+          client: clientVerification.verification
         }
       };
-    } catch (err) {
+    }
+
+    console.log('Using document hash for verification:', documentHash);
+
+    // Step 2: Server-side blockchain verification
+    const res = await axiosInstance.post('/api/v1/documents/verify-tradetrust', {
+      documentData,
+      documentHash
+    });
+    
+    // Merge verification results
+    const isFullyVerified = clientVerification.verified && 
+                           res.data.verified &&
+                           !res.data.revoked;
+    
+    return {
+      verified: isFullyVerified,
+      document: parseFromOpenAttestation(documentData),
+      verification: {
+        client: clientVerification.verification,
+        blockchain: res.data
+      },
+      issuer: res.data.issuer,
+      currentHolder: res.data.currentHolder,
+      expiryDate: res.data.expiryDate,
+      isExpired: res.data.isExpired,
+      isRevoked: res.data.revoked,
+      statusDetails: {
+          documentIntegrity: clientVerification.verification?.documentIntegrity || false,
+          issuerIdentity: clientVerification.verification?.issuerIdentity || false,
+          onBlockchain: res.data.onBlockchain || false,
+          didVerified: res.data.didVerified || false,
+          dnsVerified: res.data.dnsVerified || false
+        }
+    };
+  } catch (err) {
       console.error('Error verifying document:', err);
       
       let errorMessage = 'Failed to verify document';
       let errorDetails = {};
       
+      // frontend/src/service/service.ts (continued)
       if (axios.isAxiosError(err)) {
         errorMessage = err.response?.data?.error || 'Network error during verification';
         errorDetails = {
@@ -220,7 +240,7 @@ const documentService = {
           message: err.message
         };
       }
-      
+
       return {
         verified: false,
         error: errorMessage,
@@ -228,16 +248,28 @@ const documentService = {
         document: documentData
       };
     }
-  },
-  transferDocument: async (documentId: string, newHolder: string): Promise<any> => {
+  },  
+  transferDocument: async (documentId: string, transferData: {
+    newBeneficiary: string;
+    newHolder: string;
+  }): Promise<any> => {
     try {
-      const res = await axiosInstance.post(`/api/v1/documents/${documentId}/transfer`, {
-        newHolder
-      });
+      const res = await axiosInstance.post(`/api/v1/documents/${documentId}/transfer`, transferData);
       return res.data;
     } catch (err) {
       console.error('Error transferring document:', err);
       const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to transfer document';
+      throw new Error(errorMessage);
+    }
+  },
+  
+  getDocumentOwnership: async (documentId: string): Promise<any> => {
+    try {
+      const res = await axiosInstance.get(`/api/v1/documents/${documentId}/ownership`);
+      return res.data;
+    } catch (err) {
+      console.error('Error getting document ownership:', err);
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error || 'Failed to get document ownership';
       throw new Error(errorMessage);
     }
   },

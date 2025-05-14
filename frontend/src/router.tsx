@@ -12,6 +12,7 @@ import {
 } from './pages/wrapper.tsx'
 
 import { LoginEmailOTP } from '@/types/general-type'
+import TransferableDocumentViewer from './components/dashboard/TransferableDocumentViewer.tsx'
 
 export default function RouterPages({ token, setToken }: LoginEmailOTP) {
   const protectedRoutes = token
@@ -34,6 +35,11 @@ export default function RouterPages({ token, setToken }: LoginEmailOTP) {
         {
           path: '/document/:id',
           element: <WrapperDocumentView token={token} setToken={setToken} />,
+          protected: true,
+        },
+        {
+          path: '/document/transferable/:id',
+          element: <TransferableDocumentViewer token={token} setToken={setToken} />,
           protected: true,
         },
       ]
